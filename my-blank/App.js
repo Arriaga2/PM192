@@ -1,89 +1,72 @@
-/* Zona 1: Importaciones */
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { StyleSheet, Text, View, Switch } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+// SplashScreen.js
 
-/* Zona 2: Main */
+import { ImageBackground, StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+
+const FondoBienvenida = () => {
+  return (
+    <ImageBackground
+      source={require('./assets/fondo.png')}
+      style={styles.fondo}
+    >
+      <View style={styles.contenido}>
+        <Text style={styles.titulo}>Este es el Splash Screen</Text>
+      </View>
+    </ImageBackground>
+  );
+};
+
 export default function App() {
-  const [activarSwitch, setActwitch] = useState(false);
-  const [modoOscuro, setModoOscuro] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={[styles.contenedor, modoOscuro && styles.fondoOscuro]}>
-        <Text style={[styles.titulo, modoOscuro && styles.textoClaro]}>
-          Práctica con Switch
-        </Text>
-
-        <View style={styles.opcion}>
-          <Text style={[styles.etiqueta, modoOscuro && styles.textoClaro]}>
-            Activar Switch
-          </Text>
-          <Switch
-            value={activarSwitch}
-            onValueChange={() => setActwitch(!activarSwitch)}
-            trackColor={{ false: '#ccc', true: '#4caf50' }}
-            thumbColor={activarSwitch ? '#ffffff' : '#999999'}
-          />
+    <SafeAreaView style={styles.container}>
+      {showSplash ? (
+        <FondoBienvenida />
+      ) : (
+        <View style={styles.mainContent}>
+          <Text style={styles.mainText}>Pantalla principal</Text>
         </View>
-
-        <View style={styles.opcion}>
-          <Text style={[styles.etiqueta, modoOscuro && styles.textoClaro]}>
-            Modo Oscuro
-          </Text>
-          <Switch
-            value={modoOscuro}
-            onValueChange={() => setModoOscuro(!modoOscuro)}
-            disabled={!activarSwitch}
-            trackColor={
-              activarSwitch
-                ? { false: '#ff9999', true: '#ff3b30' }
-                : { false: '#ccc', true: '#4caf50' }
-            }
-            thumbColor={
-              activarSwitch
-                ? '#ff3b30'
-                : modoOscuro
-                ? '#ffffff'
-                : '#999999'
-            }
-          />
-        </View>
-
-        <StatusBar style={modoOscuro ? 'light' : 'dark'} />
-      </SafeAreaView>
-    </SafeAreaProvider>
+      )}
+    </SafeAreaView>
   );
 }
 
-/* Zona 3: Estilos */
 const styles = StyleSheet.create({
-  contenedor: {
+  container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 30,
+  },
+  fondo: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  contenido: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   titulo: {
-    fontSize: 24,
-    marginBottom: 40,
-    textAlign: 'center',
+    fontSize: 28,
+    color: 'white',
     fontWeight: 'bold',
   },
-  fondoOscuro: {
-    backgroundColor: '#1a1a1a',
-  },
-  textoClaro: {
-    color: '#ffffff',
-  },
-  opcion: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  mainContent: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
   },
-  etiqueta: {
-    fontSize: 18,
+  mainText: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
