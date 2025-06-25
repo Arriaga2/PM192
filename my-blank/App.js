@@ -1,7 +1,7 @@
-// SplashScreen.js
+// ImagenFondoPantalla.js
 
 import { ImageBackground, StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 const FondoBienvenida = () => {
   return (
@@ -10,32 +10,16 @@ const FondoBienvenida = () => {
       style={styles.fondo}
     >
       <View style={styles.contenido}>
-        <Text style={styles.titulo}>Este es el Splash Screen</Text>
+        <Text style={styles.titulo}>¡Pantalla de inicio!</Text>
       </View>
     </ImageBackground>
   );
 };
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
-      {showSplash ? (
-        <FondoBienvenida />
-      ) : (
-        <View style={styles.mainContent}>
-          <Text style={styles.mainText}>Pantalla principal</Text>
-        </View>
-      )}
+      <FondoBienvenida />
     </SafeAreaView>
   );
 }
@@ -58,15 +42,6 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 28,
     color: 'white',
-    fontWeight: 'bold',
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainText: {
-    fontSize: 24,
     fontWeight: 'bold',
   },
 });
