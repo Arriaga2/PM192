@@ -1,47 +1,60 @@
-// ImagenFondoPantalla.js
+// Zona de importaciones
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, Button, ActivityIndicator } from 'react-native';
 
-import { ImageBackground, StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import React from 'react';
-
-const FondoBienvenida = () => {
-  return (
-    <ImageBackground
-      source={require('./assets/fondo.png')}
-      style={styles.fondo}
-    >
-      <View style={styles.contenido}>
-        <Text style={styles.titulo}>¡Pantalla de inicio!</Text>
-      </View>
-    </ImageBackground>
-  );
+// Zona de componentes hijo con props
+const IndicadorCarga = ({ color, size }) => {
+  return <ActivityIndicator style={styles.indicador} color={color} size={size} />;
 };
 
+// Zona de componente principal
 export default function App() {
+  const [cargando, setCargando] = useState(false);
+
+  // Función de carga
+  const iniciarCarga = () => {
+    setCargando(true);
+    setTimeout(() => {
+      setCargando(false);
+    }, 3000); // simulación de carga
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <FondoBienvenida />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text style={styles.textoPrincipal}>Uso de ActivityIndicator</Text>
+
+      {cargando ? (
+        <IndicadorCarga color="deepskyblue" size="large" />
+      ) : (
+        <Text style={styles.textoSecundario}>Presiona el botón para comenzar</Text>
+      )}
+
+      <Button title="Iniciar Carga" onPress={iniciarCarga} color="#ff6f61" />
+      <StatusBar style="auto" />
+    </View>
   );
 }
 
+// Zona de estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  fondo: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  contenido: {
-    flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#ccff90',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 20,
   },
-  titulo: {
-    fontSize: 28,
-    color: 'white',
+  textoPrincipal: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  textoSecundario: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  indicador: {
+    marginBottom: 20,
   },
 });
