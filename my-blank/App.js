@@ -1,170 +1,182 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, SectionList, FlatList, StatusBar, TouchableOpacity } from 'react-native'; 
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Image,
+  StatusBar,
+  Keyboard,
+} from 'react-native';
+import axios from 'axios';
 
 export default function App() {
-  // Estado para controlar qué tipo de lista mostrar (SectionList o FlatList)
-  const [showFlatList, setShowFlatList] = useState(false);
+  const [ciudad, setCiudad] = useState('');
+  const [ciudades, setCiudades] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Datos para SectionList - organizados en secciones con títulos
-  const [datosSeccionados, setDatosSeccionados] = useState([
-    {
-      title: 'Mensajes Destacados',
-      data: [
-        { id: '1', nombre: 'Ana', mensaje: '¡Hola!' },
-        { id: '2', nombre: 'Juan', mensaje: 'Salinas mató a Colosio.' },
-      ],
-    },
-    {
-      title: 'Mis Recordatorios',
-      data: [
-        { id: '3', nombre: 'Yo', mensaje: 'Comprar comida para la semana.' },
-        { id: '4', nombre: 'Yo', mensaje: 'Revisar el clima.' },
-        { id: '5', nombre: 'Yo', mensaje: 'Preocuparme por las tareas pendientes.' },
-      ],
-    },
-    {
-      title: 'Ideas para Proyectos',
-      data: [
-        { id: '6', nombre: 'Recetas', mensaje: 'App de recetas personalizadas.' },
-        { id: '7', nombre: 'Copia de notion', mensaje: 'Un rastreador de hábitos diario.' },
-      ],
-    },
-  ]);
+  const API_KEY = 'TU_API_KEY'; // <-- Reemplaza con tu clave real
 
-  // Datos para FlatList - lista simple sin secciones
-  const [datosFlatList, setDatosFlatList] = useState([
-    { id: '1', nombre: 'María', mensaje: 'Buenos días a todos' },
-    { id: '2', nombre: 'Pedro', mensaje: 'Recordar la junta de mañana' },
-    { id: '3', nombre: 'Luis', mensaje: 'Enviar el reporte semanal' },
-    { id: '4', nombre: 'Carmen', mensaje: 'Revisar las tareas pendientes' },
-    { id: '5', nombre: 'Roberto', mensaje: 'Actualizar la documentación' },
-    { id: '6', nombre: 'Sofia', mensaje: 'Preparar presentación' },
-  ]);
+  const obtenerClima = async () => {
+    if (!ciudad.trim()) return;
 
-  // Función para renderizar cada item individual
-  const renderItem = ({ item }) => (
-    <View style={styles.itemCard}>
-      <Text style={styles.itemNombre}>{item.nombre}</Text>
-      <Text style={styles.itemMensaje}>{item.mensaje}</Text>
-    </View>
-  );
+    setLoading(true);
+    setError('');
+    Keyboard.dismiss();
+
+    try {
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${ciudad}&appid=${API_KEY}&units=metric&lang=es`
+      );
+
+      const data = {
+        id: Date.now().toString(),
+        nombre: response.data.name,
+        temperatura: response.data.main.temp,
+        condicion: response.data.weather[0].description,
+        icono: response.data.weather[0].icon,
+      };
+
+      setCiudades((prev) => [...prev, data]);
+      setCiudad('');
+    } catch (err) {
+      setError('Ciudad no encontrada o error de conexión.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const limpiarCiudades = () => {
+    setCiudades([]);
+    setError('');
+  };
 
   return (
     <View style={styles.container}>
-      {/* Barra de estado del dispositivo */}
-      <StatusBar barStyle="dark-content" /> 
-      
-      {/* Título dinámico que cambia según el tipo de lista */}
-      <Text style={styles.titulo}>{showFlatList ? 'Flat List' : 'Section List'}</Text>
-      
-      {/* Botón para alternar entre SectionList y FlatList */}
-      <TouchableOpacity 
-        style={styles.switchButton} 
-        onPress={() => setShowFlatList(!showFlatList)}
-      >
-        <Text style={styles.switchButtonText}>
-          Cambiar a {showFlatList ? 'SectionList' : 'FlatList'}
-        </Text>
+      <StatusBar barStyle="dark-content" />
+      <Text style={styles.titulo}>🌤️ Clima por Ciudad</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Ingresa una ciudad"
+        value={ciudad}
+        onChangeText={setCiudad}
+      />
+
+      <TouchableOpacity style={styles.botonBuscar} onPress={obtenerClima}>
+        <Text style={styles.textoBoton}>Buscar</Text>
       </TouchableOpacity>
 
-      {/* Renderizado condicional: muestra FlatList o SectionList según el estado */}
-      {showFlatList ? (
-        <FlatList
-          data={datosFlatList}                    // Datos a mostrar
-          keyExtractor={(item) => item.id}        // keyExtractor: Función que extrae una key única de cada item para optimizar el renderizado. React Native usa estas keys para identificar qué elementos cambiaron, se agregaron o eliminaron
-          renderItem={renderItem}                 // Función para renderizar cada item
-          style={styles.list}                     // Estilos del contenedor
-          contentContainerStyle={styles.listContent} // Estilos del contenido interno
-        />
-      ) : (
-        // SectionList: lista organizada en secciones con headers
-        <SectionList
-          sections={datosSeccionados}             // Datos organizados por secciones
-          keyExtractor={(item, index) => item.id + index} // Key única por item
-          renderItem={renderItem}                 // Función para renderizar cada item
-          renderSectionHeader={({ section: { title } }) => ( // Renderiza el header de cada sección
-            <Text style={styles.sectionHeader}>{title}</Text>
-          )}
-          style={styles.list}                     // Estilos del contenedor
-          contentContainerStyle={styles.listContent} // Estilos del contenido interno
-        />
+      {loading && <ActivityIndicator size="large" color="#007bff" style={{ marginVertical: 15 }} />}
+
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <ScrollView style={styles.scroll}>
+        {ciudades.map((c) => (
+          <View key={c.id} style={styles.card}>
+            <Text style={styles.ciudad}>{c.nombre}</Text>
+            <Text style={styles.condicion}>
+              {c.temperatura}°C - {c.condicion}
+            </Text>
+            <Image
+              source={{ uri: `https://openweathermap.org/img/wn/${c.icono}@2x.png` }}
+              style={styles.icono}
+            />
+          </View>
+        ))}
+      </ScrollView>
+
+      {ciudades.length > 0 && (
+        <TouchableOpacity style={styles.botonLimpiar} onPress={limpiarCiudades}>
+          <Text style={styles.textoBoton}>Limpiar Ciudades</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Contenedor principal de la aplicación
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    paddingTop: 50, 
-    alignItems: 'center', 
+    paddingTop: 60,
+    backgroundColor: '#e9f1f7',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  // Estilo del título principal
   titulo: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 20,
     color: '#333',
   },
-  // Estilo del botón para cambiar entre listas
-  switchButton: {
-    backgroundColor: '#007bff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+  input: {
+    width: '100%',
+    backgroundColor: '#fff',
+    padding: 12,
     borderRadius: 8,
-    marginBottom: 20,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
   },
-  // Texto del botón de cambio
-  switchButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  botonBuscar: {
+    backgroundColor: '#007bff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 10,
   },
-  // Estilo base para ambas listas
-  list: {
-    width: '100%', 
-  },
-  // Estilo del contenido interno de las listas
-  listContent: {
-    paddingBottom: 20, 
-  },
-  // Estilo de los headers de sección (SectionList)
-  sectionHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    backgroundColor: '#e0e0e0', 
+  botonLimpiar: {
+    backgroundColor: '#dc3545',
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginTop: 15, 
-    color: '#222',
-  },
-  // Estilo de cada tarjeta
-  itemCard: {
-    backgroundColor: '#fff',
     borderRadius: 8,
+    marginTop: 10,
+  },
+  textoBoton: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 10,
+    fontSize: 16,
+  },
+  scroll: {
+    width: '100%',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
     padding: 15,
-    marginVertical: 5,
-    marginHorizontal: 10,
+    marginVertical: 8,
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
     elevation: 3,
   },
-  // Estilo del nombre en cada item
-  itemNombre: {
-    fontSize: 18,
+  ciudad: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#007bff',
     marginBottom: 5,
   },
-  // Estilo del mensaje en cada item
-  itemMensaje: {
+  condicion: {
     fontSize: 16,
-    color: '#555',
+    color: '#333',
+    marginBottom: 5,
+    textTransform: 'capitalize',
+  },
+  icono: {
+    width: 60,
+    height: 60,
   },
 });
